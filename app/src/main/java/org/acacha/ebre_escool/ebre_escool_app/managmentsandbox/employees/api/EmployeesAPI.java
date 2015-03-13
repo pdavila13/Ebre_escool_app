@@ -14,4 +14,6 @@ public class EmployeesAPI {
             "http://192.168.160.106/ebre-escool/uploads/school_logos/no_picture.gif";
             //"http://acacha.org/acacha_manager/uploads/school_logos/no_picture.gif";
     public static final String IMAGE = "http://www.fortunetransportation.com/images/employeeIcon.png";
+    public static final String VIEW ="view";
+    public static final String EDIT ="edit";
 }

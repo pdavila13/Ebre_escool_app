@@ -5,29 +5,49 @@ import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.content.Context;
+
 import java.lang.*;
 
 import org.acacha.ebre_escool.ebre_escool_app.R;
 import org.acacha.ebre_escool.ebre_escool_app.helpers.OnFragmentInteractionListener;
 import org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.employees.api.EmployeesAPI;
 import org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.employees.pojos.Employees;
-import org.acacha.ebre_escool.ebre_escool_app.settings.SettingsActivity;
+import org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.employees.api.EmployeesApiService;
 
 import java.util.ArrayList;
 
 import it.gmariotti.cardslib.library.internal.Card;
 import it.gmariotti.cardslib.library.internal.CardArrayAdapter;
+import it.gmariotti.cardslib.library.internal.CardArrayMultiChoiceAdapter;
+import it.gmariotti.cardslib.library.internal.CardExpand;
 import it.gmariotti.cardslib.library.internal.CardHeader;
 import it.gmariotti.cardslib.library.internal.CardThumbnail;
+import it.gmariotti.cardslib.library.internal.ViewToClickToExpand;
+import it.gmariotti.cardslib.library.internal.base.BaseCard;
 import it.gmariotti.cardslib.library.view.CardListView;
+import it.gmariotti.cardslib.library.view.CardView;
+import it.gmariotti.cardslib.library.view.base.CardViewWrapper;
+import retrofit.Callback;
+import retrofit.RequestInterceptor;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 /**
  * Create by PaoloDavila
@@ -58,6 +78,10 @@ public class FragmentEmployees extends Fragment {
     private AlertDialog alert = null;
 
     final String LOG_TAG = "InitialSettingsStep1Employees";
+
+    Vibrator vibe;
+
+    CustomEmployeesCard card_on_list;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -92,12 +116,35 @@ public class FragmentEmployees extends Fragment {
 
         for (int i = 0; i < mEmployees.length; i++) {
             Log.d("########## TEST: ", mEmployees[i].getCode());
+
             // Create a Card
-            Card card_on_list = new Card(getActivity());
+            Card card_on_list = new CustomEmployeesCard(getActivity());
 
             // Create a CardHeader and add Header to card_on_list
             CardHeader header = new CardHeader(getActivity());
             header.setTitle(mEmployees[i].getType_id());
+
+            /*####################################################################################*/
+
+            header.setPopupMenu(R.menu.employees_card_menu, new CardHeader.OnClickCardHeaderPopupMenuListener() {
+                @Override
+                public void onMenuItemClick(BaseCard baseCard, MenuItem menuItem) {
+                    vibe.vibrate(60); // 60 is time in ms
+                    switch(menuItem.getItemId()){
+                        case(R.id.oneAction):
+                            Log.d(LOG_TAG,"CARD ID PUT"+baseCard.getId());
+                            //Future actions here
+                            Toast.makeText(getActivity(), "Action 1", Toast.LENGTH_SHORT).show();
+                            break;
+                        case(R.id.otherActions):
+                            //Future actions here
+                            Toast.makeText(getActivity(),"Action 2",Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            });
+
+            /*####################################################################################*/
 
             card_on_list.addCardHeader(header);
 
@@ -149,7 +196,80 @@ public class FragmentEmployees extends Fragment {
         }
     }
 
-    /*##############################################################################################*/
+    /*############################################################################################*/
+
+    public class CustomEmployeesCard extends Card implements View.OnClickListener {
+
+
+        private String title;
+
+        //Constructor
+        public CustomEmployeesCard(Context context) {
+            super(context, R.layout.employees_card_buttons);
+        }
+
+        @Override
+        public void setupInnerViewElements(ViewGroup parent, View view) {
+            //Get controls and set button listeners
+            TextView tx = (TextView) view.findViewById(R.id.titleEmployees);
+            Button btnDetail = (Button) view.findViewById(R.id.btnView);
+            Button btnEdit = (Button) view.findViewById(R.id.btnEdit);
+            tx.setText(title);
+            if (btnDetail != null) {
+                btnDetail.setOnClickListener(this);
+
+            }
+            if (btnEdit != null) {
+                btnEdit.setOnClickListener(this);
+
+            }
+        }
+        @Override
+        public void onClick(View v) {
+            //Vibrate on click
+            vibe.vibrate(60); // 60 is time in ms
+            switch(v.getId()){
+                case R.id.btnView:
+                    onCardClick(Integer.valueOf(getId()), EmployeesAPI.VIEW);
+                    break;
+                case  R.id.btnEdit:
+                    onCardClick(Integer.valueOf(getId()), EmployeesAPI.EDIT);
+                    break;
+            }
+
+        }
+
+        public void onCardClick(int id,String action){
+            //Change the fragment
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            Fragment employeesView = new EmployeesView();
+            //transaction.hide(EmployeesFragment.this);
+            transaction.replace(R.id.container,employeesView);
+            transaction.addToBackStack(null);
+            transaction.commit();
+
+
+            //Pass the id to the fragment detail
+            Bundle extras = new Bundle();
+            extras.putInt("id",id);
+            //extras.putString(EmployeesAPI.ACTION,action);
+            employeesView.setArguments(extras);
+        }
+
+        @Override
+        public String getTitle() {
+            return title;
+        }
+
+        @Override
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+    }
+
+    /*############################################################################################*/
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
