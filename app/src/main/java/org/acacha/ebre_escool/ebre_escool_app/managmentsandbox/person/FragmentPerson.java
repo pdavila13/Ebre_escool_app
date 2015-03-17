@@ -2,6 +2,7 @@ package org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.person;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,12 +12,17 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.app.Activity;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.JsonReader;
 import android.util.Log;
+import android.util.MalformedJsonException;
 import android.util.Patterns;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -27,6 +33,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 import org.acacha.ebre_escool.ebre_escool_app.R;
 import org.acacha.ebre_escool.ebre_escool_app.apis.EbreEscoolAPI;
@@ -34,9 +42,7 @@ import org.acacha.ebre_escool.ebre_escool_app.apis.EbreEscoolApiService;
 import org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.person.api.PersonAPI;
 import org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.person.api.PersonApiService;
 import org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.person.pojos.Person;
-import org.acacha.ebre_escool.ebre_escool_app.pojos.School;
 
-import java.io.StringReader;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -47,6 +53,7 @@ import it.gmariotti.cardslib.library.internal.CardHeader;
 import it.gmariotti.cardslib.library.internal.CardThumbnail;
 import it.gmariotti.cardslib.library.view.CardListView;
 
+import it.gmariotti.cardslib.library.view.listener.UndoBarController;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -82,6 +89,9 @@ public class FragmentPerson extends Fragment {
     CardArrayAdapter mCardArrayAdapter;
 
     private AlertDialog alert = null;
+
+    private ProgressDialog progress;
+
 
     private String error_message_validating_person = "";
 
@@ -149,8 +159,31 @@ public class FragmentPerson extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_person, container, false);
         //settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        setHasOptionsMenu(true);
+
         return v;
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.person_action_button, menu);
+        super.onCreateOptionsMenu(menu,inflater);
+
+        MenuItem addPerson = (MenuItem)menu.findItem(R.id.add_Person);
+
+        addPerson.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Log.d(LOG_TAG, "************ ADD PERSON ##################: ");
+                int put = 9999;
+                onPersonAdd(put,"put");
+                return false;
+            }
+        });
+
+    }
+
 
 
     @Override
@@ -163,8 +196,8 @@ public class FragmentPerson extends Fragment {
         restAdapter = new RestAdapter.Builder()
                 .setEndpoint(PersonAPI.EBRE_ESCOOL_PERSON_PUBLIC_API_URL)
                 .build();
-
         get_data();
+        progress = ProgressDialog.show(getActivity(), "", "Carregant llista de persones...", true);
     }
 
     protected void get_data() {
@@ -207,17 +240,15 @@ public class FragmentPerson extends Fragment {
         * */
 
 
-
-
-
-
-        Callback callback = new Callback<Map<String, Person>>() {
-        //Callback callback = new Callback<List<Person>>() {
+        //Callback callback = new Callback<Map<String, Person>>() {
+        //Callback callback = new Callback<Person>() {
+        Callback callback = new Callback<List<Person>>() {
             @Override
-            public void success(Map<String, Person> persons, Response response) {
-            //public void success(List<Person> persons, Response response) {
+            //public void success(Map<String, Person> persons, Response response) {
+            //public void success(Person persons, Response response) {
+            public void success(List<Person> persons, Response response) {
                 Log.d(LOG_TAG, "************ Persons ##################: " + persons);
-                listOfPersons = (List<Person>) persons;
+                listOfPersons = persons;
                 reload_data();
             }
 
@@ -239,13 +270,16 @@ public class FragmentPerson extends Fragment {
             }
 
         };
-        service.persons(callback);
+        service.personsAsList(callback);
     }
 
 
     protected void reload_data() {
 
         if (listOfPersons != null) {
+
+
+
 
             /*
             Gson gson = new Gson();
@@ -255,40 +289,87 @@ public class FragmentPerson extends Fragment {
             *
             * */
 
-
+            // try {
             Gson gson = new Gson();
             String grossData = gson.toJson(listOfPersons);
             //JsonReader reader = new JsonReader(new StringReader(grossData));
-            //reader.setLenient(true);
+//                //reader.setLenient(true);
+//            } catch (MalformedJsonException e) {
+//                throw new JsonSyntaxException(e);
+//            } catch (IOException e) {
+//                throw new JsonIOException(e);
+//            }
 
-
-
-            Log.d(LOG_TAG, "###### json_persons_list: " + grossData);
 
             //Retrieve persons on JSON format
             //String json_persons_list = gson.toString("persons_list", "" + listOfPersons);
             //Log.d(LOG_TAG, "###### json_persons_list: " + json_persons_list);
 
-            Person[] arrayData = gson.fromJson(grossData.trim(), Person[].class);
 
+            Person[] arrayData = gson.fromJson(grossData.trim(), Person[].class);
+            Log.d(LOG_TAG, "###### json_persons_list: " + grossData);
 
 
             lstPersons = (CardListView) getActivity().findViewById(R.id.personsList);
 
             ArrayList<Card> cards = new ArrayList<Card>();
 
-            for (int i = 0; i < arrayData.length; i++) {
+            for (int i = 0; i < 10; i++) { //arrayData.length
                 Log.d("########## TEST: ", arrayData[i].getGivenName());//getFullname());
+
                 // Create a Card
                 card_on_list = new Card(getActivity());
+
+                // Person ID
+                card_on_list.setId(arrayData[i].getId());
 
                 // Create a CardHeader and add Header to card_on_list
                 CardHeader header = new CardHeader(getActivity());
 
-                header.setTitle(arrayData[i].getNotes());//getFullname());
+                header.setTitle("Persona: " + arrayData[i].getId());
+
+                //header.setTitle(arrayData[i].getNotes());//getFullname());
                 //header.setTitle(mPersons[i].getGivenName()+ " " + mPersons[i].getSn1());//getFullname());
 
                 card_on_list.addCardHeader(header);
+
+
+                // Enable the swipe action on the single Cards
+                card_on_list.setSwipeable(true);
+
+                //
+                final String markedForDeletionPerson = "Persona: " + arrayData[i].getId();
+
+                // Swipe to delete person from list.
+                card_on_list.setOnSwipeListener(new Card.OnSwipeListener() {
+                    @Override
+                    public void onSwipe(Card card) {
+
+                        Toast.makeText(getActivity(), "S'ha eliminat = " + markedForDeletionPerson, Toast.LENGTH_SHORT).show();
+                        markedForDeletion(card.getId(), "y");
+
+                    }
+                });
+                // Swipe to undo deleted person
+                card_on_list.setOnUndoSwipeListListener(new Card.OnUndoSwipeListListener() {
+                    @Override
+                    public void onUndoSwipe(Card card) {
+
+                        Toast.makeText(getActivity(), "Undo card=" + markedForDeletionPerson, Toast.LENGTH_SHORT).show();
+                        markedForDeletion(card.getId(), "n");
+
+                    }
+                });
+
+
+
+
+
+
+
+
+
+
 
                 //card_on_list.setId(mPersons[i].getId());
 
@@ -296,27 +377,57 @@ public class FragmentPerson extends Fragment {
 
                 //card_on_list.setTitle(mPersons[i].getNotes()); //.getSchoolNotes());
 
-                card_on_list.setClickable(true);
-                card_on_list.setSwipeable(true);
+                //card_on_list.setClickable(true);
+
 
                 //Obtain thumbnail from an URL and add to card
                 CardThumbnail thumb = new CardThumbnail(getActivity());
                 //thumb.setDrawableResource(listImages[i]);
+                Log.d("########## IMAGE URL: ", PersonAPI.EBRE_ESCOOL_PUBLIC_IMAGE + arrayData[i].getPhoto().toString());//getFullname());
+
+
                 if (arrayData[i].getPhoto() != "") {//getLogoURL()!=""){
-                    thumb.setUrlResource(arrayData[i].getPhoto());//getLogoURL());
+                    thumb.setUrlResource(PersonAPI.EBRE_ESCOOL_PUBLIC_IMAGE + arrayData[i].getPhoto());//getLogoURL());
+                    //thumb.
                 } else {
                     thumb.setUrlResource(EbreEscoolAPI.EBRE_ESCOOL_PUBLIC_IMAGE_NOT_AVAILABLE);
 
                 }
+
+
+
+
+
+
+
+
+
+
+
                 //thumb.setUrlResource(EbreEscoolAPI.EBRE_ESCOOL_PUBLIC_IMAGE_NOT_AVAILABLE); //temporal
 
                 card_on_list.addCardThumbnail(thumb);
 
                 //Add card to car List
                 cards.add(card_on_list);
+                progress.dismiss();
+
             }
 
             mCardArrayAdapter = new CardArrayAdapter(getActivity(), cards);
+
+            mCardArrayAdapter.setUndoBarUIElements(new UndoBarController.DefaultUndoBarUIElements(){
+
+                @Override
+                public SwipeDirectionEnabled isEnabledUndoBarSwipeAction() {
+                    return SwipeDirectionEnabled.TOPBOTTOM;
+                }
+
+                @Override
+                public AnimationType getAnimationType() {
+                    return AnimationType.TOPBOTTOM;
+                }
+            });
 
             mCardArrayAdapter.setEnableUndo(true);
 
@@ -342,5 +453,59 @@ public class FragmentPerson extends Fragment {
             }
         }
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mCardArrayAdapter.getUndoBarController().onSaveInstanceState(outState);
+    }
+
+
+
+    //Method to mark for deletion
+    private void markedForDeletion(String id, String action) {
+        Person person = new Person();
+        person.setId(id);
+        person.setMarkedForDeletion(action);
+        restAdapter = new RestAdapter.Builder()
+                .setEndpoint(PersonAPI.EBRE_ESCOOL_PERSON_PUBLIC_API_URL)
+                .build();
+        PersonApiService service = restAdapter.create(PersonApiService.class);
+
+        Callback callback = new Callback<Person>() {
+            @Override
+            public void success(Person person, Response response) {
+                Log.d(LOG_TAG, "************ Person to delete from list ##################: " + person);
+                Toast.makeText(getActivity(), "Person " + person.getId(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                Toast.makeText(getActivity(), "UPDATE ERROR! " + retrofitError.getMessage(), Toast.LENGTH_LONG).show();
+
+            }
+
+        };
+        service.markedForDeletion(person, callback);
+
+    }
+
+    public void onPersonAdd(int id,String action){
+        //Change the fragment
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        Fragment personInfo = new FragmentPersonInfo();
+
+        transaction.replace(R.id.container,personInfo);
+        transaction.addToBackStack(null);
+        transaction.commit();
+
+
+        //Pass the id to the fragment info
+        Bundle extras = new Bundle();
+        extras.putInt("id",id);
+        extras.putString("action",action);
+        personInfo.setArguments(extras);
     }
 }
