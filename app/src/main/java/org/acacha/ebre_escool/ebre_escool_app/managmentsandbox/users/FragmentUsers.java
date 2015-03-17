@@ -59,7 +59,7 @@ import retrofit.client.Response;
 /**
  * A simple {@link android.support.v4.app.Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.users.FragmentUsers.OnFragmentInteractionListener} interface
+ * {@link org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.users.FragmentUsers} interface
  * to handle interaction events.
  * Use the {@link org.acacha.ebre_escool.ebre_escool_app.managmentsandbox.users.FragmentUsers#newInstance} factory method to
  * create an instance of this fragment.
@@ -82,8 +82,8 @@ public class FragmentUsers extends Fragment {
     //Extraure users
     private List<Users> usersList;
     private final String TAG = "tag";
-    MyCardArrayMultiChoiceAdapter mMyCardArrayMultiChoiceAdapter;
-    CustomStudySubmodulesCard card_on_list;
+    //MyCardArrayMultiChoiceAdapter mMyCardArrayMultiChoiceAdapter;
+    //CustomStudySubmodulesCard card_on_list;
     //This lets vibrate on click button actions
     Vibrator vibe;
     ActionMode mActionMode;
@@ -137,14 +137,15 @@ public class FragmentUsers extends Fragment {
         }
     }
 
+    /*
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-        inflater.inflate(R.menu.users_put_button, menu);
+        //inflater.inflate(R.menu.users_put_button, menu);
         super.onCreateOptionsMenu(menu,inflater);
         //Get the new menu item
-        MenuItem putUsers= (MenuItem)menu.findItem(R.id.putUsers);
+        //MenuItem putUsers= (MenuItem)menu.findItem(R.id.putUsers);
         //Set on click listener
-        putUsers.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        //putUsers.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 //On click go to create a new user.
@@ -155,7 +156,7 @@ public class FragmentUsers extends Fragment {
                 return false;
             }
         });
-    }
+    }*/
 
     @Override
     public  void onStart(){
@@ -198,7 +199,7 @@ public class FragmentUsers extends Fragment {
             public void success(List<Users> Users, Response response) {
                 Log.d(TAG,"En el success");
                 usersList=Users;
-                updateDisplay();
+                //updateDisplay();
             }
 
             @Override
@@ -210,7 +211,7 @@ public class FragmentUsers extends Fragment {
     }
 
 
-
+/*
 
     //Fill listview
     protected void updateDisplay() {
@@ -393,7 +394,7 @@ public class FragmentUsers extends Fragment {
 //        public void onFragmentInteraction(Uri uri);
 //    }
 
-
+/*
     public class CustomExpandCard extends CardExpand {
         //We send an object Users to fill text views
         private final Users users;

@@ -70,19 +70,19 @@ public class FragmentEmployees extends Fragment {
         Employees employees3 = new Employees();
 
         employees1.setId("1");
-        employees1.setPerson_id("1072");
+        employees1.setPersonId("1072");
         employees1.setCode("Leonord Agamundi");
-        employees1.setType_id("Empleat");
+        employees1.setTypeId("Empleat");
 
         employees2.setId("2");
-        employees2.setPerson_id("1017");
+        employees2.setPersonId("1017");
         employees2.setCode("Jordi Caudet");
-        employees2.setType_id("Empleat");
+        employees2.setTypeId("Empleat");
 
         employees3.setId("3");
-        employees3.setPerson_id("1018");
+        employees3.setPersonId("1018");
         employees3.setCode("Jaume Benaiges");
-        employees3.setType_id("Empleat");
+        employees3.setTypeId("Empleat");
 
         mEmployees[0] = employees1;
         mEmployees[1] = employees2;
@@ -97,12 +97,12 @@ public class FragmentEmployees extends Fragment {
 
             // Create a CardHeader and add Header to card_on_list
             CardHeader header = new CardHeader(getActivity());
-            header.setTitle(mEmployees[i].getType_id());
+            header.setTitle(mEmployees[i].getTypeId());
 
             card_on_list.addCardHeader(header);
 
             //card_on_list.setId(mEmployees[i].getCode());
-            card_on_list.setTitle(mEmployees[i].getCode() + "\n" + mEmployees[i].getPerson_id()  + "\n");
+            card_on_list.setTitle(mEmployees[i].getCode() + "\n" + mEmployees[i].getPersonId()  + "\n");
             card_on_list.setClickable(true);
 
             //Obtain thumbnail from an URL and add to card
@@ -132,17 +132,6 @@ public class FragmentEmployees extends Fragment {
             Log.d(LOG_TAG,"Getted current selected employees: " + current_selected_employees);
 
             lstEmployees.setItemChecked(Integer.parseInt(current_selected_employees), true);
-
-            //Check All data is completed before continue
-           /* boolean data_is_ok = check_all_data_is_ok(0);
-            if(data_is_ok) {
-                notifyCompleted();
-            } else {
-                notifyIncomplete();
-                // Show alert
-                showAlertDialog(getActivity(), getString(R.string.incorrect_school_data_title),
-                        error_message_validating_employees + ". " + getString(R.string.incorrect_school_data_label), false);
-            }*/
 
             String current_value = settings.getString(EMPLOYEES_LIST_KEY,"0");
             settings.edit().putString(EMPLOYEES_LIST_KEY, current_value).apply();

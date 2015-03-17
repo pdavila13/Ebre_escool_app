@@ -99,6 +99,7 @@ public class FragmentPersonInfo extends Fragment {
         // View view= inflater.inflate(R.layout.fragment_teacher_detail, container, false);
         View v = inflater.inflate(R.layout.fragment_teacher_detail, container, false);
 
+        /*
         mId = (TextView) v.findViewById(R.id.);
         mGivenName
         mSurName1
@@ -112,7 +113,7 @@ public class FragmentPersonInfo extends Fragment {
         mMarkedForDeletion
         mMarkedForDeletionDate
 
-
+        */
         return v;
     }
 
