@@ -52,5 +52,6 @@ dependencies {
     compile 'com.github.gabrielemariotti.cards:cardslib-extra-staggeredgrid:2.0.1'
     compile 'com.github.gabrielemariotti.cards:cardslib-extra-dragdrop:2.0.1'
     compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.pushbots:pushbots-lib:2.0.9@aar'
+    compile 'com.pushbots:pushbots-lib:2.0.11@aar'
+    compile 'com.android.support:support-v4:21.0.0'
 }
