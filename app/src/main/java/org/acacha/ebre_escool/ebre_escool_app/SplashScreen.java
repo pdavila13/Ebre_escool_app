@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import com.pushbots.push.Pushbots;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -148,6 +149,9 @@ public class SplashScreen extends Activity {
             on_create_after_checking_connection();
         }
         //END CHECK CONNECTION
+
+        //PushBots init
+        Pushbots.sharedInstance().init(this);
     }
 
     private void on_create_after_checking_connection() {
